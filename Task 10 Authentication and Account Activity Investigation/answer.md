@@ -127,7 +127,7 @@
 
       198.51.100.45
 
-      *affected accounts:* employee01, employee02, employee03, hr01, admin, finance01
+      affected accounts: employee01, employee02, employee03, hr01, admin, finance01
 
 **Why is this pattern different from repeated attempts against one account?**
 
@@ -157,3 +157,147 @@
       It looks unusual, but the log alone cannot confirm it as malicious.
 
 
+## PART 4 — INCIDENT INVESTIGATION CHALLENGE 
+
+A source IP attempts access to multiple accounts, and one account later successfully logs in from the same source. 
+
+**1. Which source IP is involved?**
+
+     198.51.100.45
+
+**2. Which accounts were targeted?**
+
+     employee01, employee02, employee03, finance01, hr01, and admin.
+
+**3. Which account later logged in successfully?**
+
+      finance01
+
+**4. Why is this sequence important?**
+
+      This looks suspicious because the same IP tried logging into several different accounts and later successfully logged into one of them. This could indicate a password-spraying or credential attack.
+
+**5. What would you investigate immediately?**
+
+      Investigate the finance01 login, verify whether the source IP is authorized, and review what activity occurred during/after the successful session.
+      
+**6. Can you confirm account compromise based only on this log? Explain.**
+
+        No. The log shows suspicious behavior and a successful login, but it does not prove that the attacker obtained or used stolen credentials. Additional evidence such as VPN/session logs, MFA records, endpoint activity, and account-owner confirmation would be needed
+
+
+## PART 5 — PRIORITIZATION 
+
+**Priority 1 — Multiple failed logins followed by a successful login**
+
+1. The IP address 198.51.100.45 tried to log into several different accounts and failed each time. Later, it successfully logged into finance01.
+
+3. finance01 — Source IP 198.51.100.45.
+   
+5. This is the most suspicious activity because the same IP tried multiple accounts and eventually got into one of them. It could be a password-spraying attack.
+   
+7. I would check VPN logs, MFA records, the user's login history, and what activity happened after the successful login.
+   
+**Priority 2 — Repeated failed attempts against the admin account**
+
+1. The admin account had six failed login attempts from 203.0.113.88 within a short period. Later, there were two more failed attempts from the same IP.
+   
+2. admin — Source IP 203.0.113.88.
+   
+3. Repeated attempts against an administrator account could indicate a brute-force attack. If the attacker had succeeded, the impact could be serious.
+   
+4. I would check authentication logs, VPN logs, whether the IP is known or trusted, and whether there were any successful logins from the same source.
+
+**Priority 3 — Failed logins followed by a successful login for Alice**
+
+1. alice had three failed login attempts on WS-03 and then successfully logged in shortly afterward.
+
+2. Account and source: alice — Source IP 192.168.1.30.
+
+3. It could simply be Alice entering the wrong password a few times, but the quick success afterward makes it worth checking.
+
+4. I would check Alice's normal login activity, endpoint logs from WS-03, MFA records, and confirm whether Alice was actually using the computer at that time.
+
+
+## PART 6 — NORMAL VS REQUIRES INVESTIGATION
+
+### Activities That May Be Normal
+
+**1. John’s successful login**
+
+ John logged in successfully from 192.168.1.25.
+This looks normal because it was an internal login and there were no unusual login attempts around it.
+
+**2. Developer01 logging in and out**
+
+developer01 logged in successfully and logged out shortly afterward.
+This could just be a normal work session, so there is nothing obviously suspicious about it.
+
+**3. Contractor01’s VPN login**
+
+contractor01 successfully logged into the VPN from 203.0.113.150.
+This may be normal if the contractor was expected to work remotely at that time. I would only check further if the login was unexpected.
+
+### Activities That Require Further Investigation
+
+**1. Finance01’s successful login**
+
+The IP 198.51.100.45 tried several different accounts and later successfully logged into finance01.
+This stands out because it could be a password-spraying attempt. I would check the VPN logs, MFA records, and what finance01 did after logging in.
+
+**2. Repeated attempts against the admin account**
+
+The IP 203.0.113.88 tried to log into admin several times and failed.
+The number of attempts in a short period makes this look like possible brute-force activity. I would check if there were any successful logins from this IP and whether it is a known or trusted source.
+
+**3.Alice’s failed attempts followed by a successful login**
+
+Alice had three failed login attempts and then successfully logged in shortly afterward.
+This could simply mean she entered the wrong password a few times, so it is not automatically malicious. However, I would check the login and endpoint records to make sure the successful login was really Alice.
+
+## PART 7 — SHORT ANSWERS 
+
+**1. What is authentication?**
+
+     Authentication is the process of verifying the identity of user before allowing access.
+     
+**2. What does a failed login mean?**
+
+      A failed login refers that someone tried to login to the account and got denied
+
+**3. What does a successful login mean?**
+
+      It means the the authentication was accepted.
+
+**4. What information can a source IP provide?**
+
+      It provides information such as where the login/event is originated.
+
+**5. What is a possible brute-force pattern?**
+
+     A possible brute-force pattern may involve many attempts against one account. 
+     
+**6. What is a possible password spraying pattern?**
+
+     A possible password spraying pattern may involve a small number of attempts against many accounts from the same source.
+     
+**7. Why can a successful login after failures be important?**
+
+     A successful login after several failures may be legitimate or may require investigation. We need additional context to confirm whether ot was an attack or not.
+     
+**8. Does an unfamiliar source IP automatically mean an attack?**
+
+      No. It may need investigation but it does not automatically mean that it was an attack. There maybe an legitimate reason.
+      
+**9. Why are privileged account events important?**
+
+      Accounts with greater permissions deserve additional attention because unauthorized access could have a larger impact.
+
+**10. Why is context important during authentication investigations?**
+
+      Context is important because it helps us understand whether a login is normal or suspicious by looking at the user, IP, time, and surrounding activity.
+
+
+## PART 8 - FINAL INVESTIGATION SUMMARY
+
+The main activity that needs attention came from 198.51.100.45. This IP tried to log into several accounts, including employee01, employee02, employee03, finance01, hr01, and admin. Most attempts failed, but later the same IP successfully logged into finance01. This pattern looks suspicious and could be a password-spraying attack, so it should be investigated further. I would check VPN logs, MFA records, login history, and what activity happened after the successful login. However, based only on this log, we cannot confirm that the finance01 account was compromised.
